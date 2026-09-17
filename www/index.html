@@ -4881,4 +4881,22 @@
     };
   }
 })();
+
+  (function scheduleMonthlyReminder(){
+  try {
+    if (!(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications)) return;
+    var LocalNotifications = window.Capacitor.Plugins.LocalNotifications;
+    LocalNotifications.requestPermissions().then(function(res){
+      if (res.display !== "granted") return;
+      LocalNotifications.schedule({
+        notifications: [{
+          id: 1001,
+          title: "Budget App",
+          body: "New month — check for any unlogged bills or income.",
+          schedule: { on: { day: 1, hour: 9, minute: 0 }, repeats: true, allowWhileIdle: true }
+        }]
+      }).catch(function(){});
+    }).catch(function(){});
+  } catch (e) {}
+})();
 </script>
