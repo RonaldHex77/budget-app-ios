@@ -1,0 +1,45 @@
+name: Build Android app
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the project
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install JS dependencies
+        run: npm install
+
+      - name: Add the Android platform (generates the android/ project from scratch)
+        run: npx cap add android
+
+      - name: Copy the web app into the Android project
+        run: npx cap copy android
+
+      - name: Build a debug APK (no signing setup needed — debug builds self-sign)
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Upload the .apk as a downloadable build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BudgetApp-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
