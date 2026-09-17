@@ -2,13 +2,11 @@
   "name": "budget-app-ios",
   "version": "1.0.0",
   "private": true,
-  "description": "Native iOS wrapper (Capacitor) for the Our Ledger budget app.",
-  "scripts": {
-    "sync": "npx cap sync ios"
-  },
+  "description": "Native app wrapper (Capacitor) for the Our Ledger budget app — iOS and Android.",
   "dependencies": {
     "@capacitor/core": "^6.1.2",
-    "@capacitor/ios": "^6.1.2"
+    "@capacitor/ios": "^6.1.2",
+    "@capacitor/android": "^6.1.2"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.1.2"
