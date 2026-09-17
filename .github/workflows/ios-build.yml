@@ -1,0 +1,60 @@
+name: Build unsigned iOS app
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out the project
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install JS dependencies
+        run: npm install
+
+      - name: Add the iOS platform (generates the ios/ project from scratch)
+        run: npx cap add ios
+
+      - name: Copy the web app into the iOS project
+        run: npx cap copy ios
+
+      - name: Install CocoaPods dependencies
+        working-directory: ios/App
+        run: pod install
+
+      - name: Archive the app (no code signing — Sideloadly will sign it later)
+        run: |
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            archive
+
+      - name: Package the .app into an unsigned .ipa
+        run: |
+          cd "$RUNNER_TEMP/App.xcarchive/Products/Applications"
+          mkdir Payload
+          mv App.app Payload/
+          zip -r "$RUNNER_TEMP/BudgetApp-unsigned.ipa" Payload
+
+      - name: Upload the .ipa as a downloadable build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BudgetApp-unsigned-ipa
+          path: ${{ runner.temp }}/BudgetApp-unsigned.ipa
+          retention-days: 14
